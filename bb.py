@@ -29,7 +29,7 @@ def get_verification_code():
     service = build('gmail', 'v1', credentials=creds)
 
     # Mengambil email dari Atlassian yang berisi kode verifikasi
-    result = service.users().messages().list(userId='me', q='from:noreply@atlassian.com is:unread').execute()
+    result = service.users().messages().list(userId='me', q='mailed-by:id.atlassian.com is:unread').execute()
     messages = result.get('messages', [])
 
     if not messages:
