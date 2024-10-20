@@ -13,9 +13,6 @@ import requests
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
-# Variabel API Key AntiCaptcha
-API_KEY = '8406681c0b91eef882ba9c7ea9e60cbe'
-
 # Fungsi untuk generate nama acak
 def generate_random_name():
     return ''.join(random.choices(string.ascii_lowercase, k=7))
@@ -48,32 +45,6 @@ def get_verification_code():
     otp_code = ''.join([x for x in msg_str if x.isdigit()][:6])
     return otp_code if len(otp_code) == 6 else None
 
-# Fungsi untuk menyelesaikan reCAPTCHA dengan AntiCaptcha
-def solve_recaptcha_anticaptcha(site_key, url):
-    task_payload = {
-        'clientKey': API_KEY,
-        'task': {
-            'type': 'NoCaptchaTaskProxyless',
-            'websiteURL': url,
-            'websiteKey': site_key
-        }
-    }
-    
-    # Memulai tugas reCAPTCHA
-    task_response = requests.post('https://api.anti-captcha.com/createTask', json=task_payload).json()
-    task_id = task_response['taskId']
-
-    # Memeriksa status penyelesaian reCAPTCHA
-    task_result_payload = {
-        'clientKey': API_KEY,
-        'taskId': task_id
-    }
-    while True:
-        result = requests.post('https://api.anti-captcha.com/getTaskResult', json=task_result_payload).json()
-        if result['status'] == 'ready':
-            return result['solution']['gRecaptchaResponse']
-        time.sleep(5)
-
 # Fungsi utama untuk menjalankan otomatisasi
 def automate_signup():
     # Konfigurasi ChromeDriver
@@ -95,18 +66,7 @@ def automate_signup():
         email_input.send_keys(u'\ue007')  # Tekan ENTER
         time.sleep(10)
 
-        # Cek apakah reCAPTCHA muncul
-        try:
-            site_key = driver.find_element(By.CSS_SELECTOR, ".g-recaptcha").get_attribute("data-sitekey")
-            if site_key:
-                print("reCAPTCHA ditemukan, memulai penyelesaian...")
-                captcha_response = solve_recaptcha_anticaptcha(site_key, driver.current_url)
-                driver.execute_script(f'document.getElementById("g-recaptcha-response").innerHTML="{captcha_response}";')
-                time.sleep(10)
-        except Exception:
-            print("Tidak ada reCAPTCHA yang muncul, melanjutkan proses...")
-
-        # Klik tombol 'Sign up' jika tidak ada reCAPTCHA atau setelah CAPTCHA selesai
+        # Klik tombol 'Sign up' langsung setelah mengisi email
         signup_button = WebDriverWait(driver, 20).until(
             EC.element_to_be_clickable((By.ID, "signup-submit"))
         )
