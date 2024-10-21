@@ -25,27 +25,21 @@ jobs:
           pip install -r requirements.txt  # Pastikan Anda memiliki file requirements.txt untuk mendefinisikan dependensi
           pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib anticaptchaofficial selenium
 
-      - name: Get Chrome version
-        id: chrome-version
+      - name: Download ChromeDriver
         run: |
-          $chrome_version = (Get-Command "C:\Program Files\Google\Chrome\Application\chrome.exe").FileVersionInfo.ProductVersion
-          echo "Chrome version: $chrome_version"
-          echo "::set-output name=version::$chrome_version"
-
-      - name: Download matching ChromeDriver
-        run: |
-          $chrome_version = ${{ steps.chrome-version.outputs.version }}
-          $major_version = $chrome_version.Split('.')[0]  # Get major version
-          # Fetch the correct ChromeDriver version for the installed Chrome version
-          $driver_version = (Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$major_version").Content.Trim()
-          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$driver_version/chromedriver_win32.zip" -OutFile "chromedriver.zip"
+          # Download ChromeDriver versi terbaru yang sesuai dengan versi Chrome
+          $chrome_version = (Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE").Content
+          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$chrome_version/chromedriver_win32.zip" -OutFile "chromedriver.zip"
           Expand-Archive -Path chromedriver.zip -DestinationPath .
-          echo "$(pwd)\chromedriver.exe" >> $GITHUB_PATH  # Add chromedriver to PATH
 
       - name: Set up Chrome browser
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: 'latest'  # Atur versi Chrome, atau gunakan 'latest'
+
+      - name: Add ChromeDriver to PATH
+        run: |
+          echo "$(pwd)\chromedriver.exe" >> $GITHUB_PATH  # Menambahkan ChromeDriver ke PATH agar dapat digunakan
 
       - name: Run Selenium Script
         env:
