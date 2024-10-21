@@ -1,28 +1,42 @@
-name: Run Python Scripts
+name: Run Selenium Script with Anti-CAPTCHA
 
 on:
   push:
     branches:
-      - main  # Atur ini sesuai dengan cabang yang ingin Anda gunakan
-  workflow_dispatch:  # Memungkinkan menjalankan workflow secara manual
+      - main  # Atau sesuaikan dengan branch yang Anda gunakan
+  workflow_dispatch:  # Memungkinkan Anda menjalankan workflow secara manual dari GitHub Actions UI
 
 jobs:
-  run-scripts:
+  run-bb-py:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Ganti dengan versi Python yang Anda butuhkan
+          python-version: '3.9'  # Anda bisa mengganti dengan versi Python yang dibutuhkan
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt  # Pastikan Anda memiliki file requirements.txt untuk mendefinisikan dependensi
+          pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib anticaptchaofficial selenium
 
-      - name: CREATE AKUN
+      - name: Set up ChromeDriver
+        uses: electronuserland/action-chromedriver@v1
+        with:
+          version: 'latest'  # Atur versi ChromeDriver, atau gunakan 'latest'
+
+      - name: Set up Chrome browser
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: 'latest'  # Atur versi Chrome, atau gunakan 'latest'
+
+      - name: Run Selenium Script
+        env:
+          YOUR_ANTI_CAPTCHA_API_KEY: ${{ secrets.ANTICAPTCHA_API_KEY }}  # Pastikan API key ada di GitHub Secrets
         run: |
           python bb.py
