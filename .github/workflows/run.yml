@@ -25,15 +25,21 @@ jobs:
           pip install -r requirements.txt  # Pastikan Anda memiliki file requirements.txt untuk mendefinisikan dependensi
           pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib anticaptchaofficial selenium
 
-      - name: Set up ChromeDriver
-        uses: electronuserland/action-chromedriver@v1
-        with:
-          version: 'latest'  # Atur versi ChromeDriver, atau gunakan 'latest'
+      - name: Download ChromeDriver
+        run: |
+          # Download ChromeDriver versi terbaru yang sesuai dengan versi Chrome
+          $chrome_version = (Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE").Content
+          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$chrome_version/chromedriver_win32.zip" -OutFile "chromedriver.zip"
+          Expand-Archive -Path chromedriver.zip -DestinationPath .
 
       - name: Set up Chrome browser
         uses: browser-actions/setup-chrome@v1
         with:
           chrome-version: 'latest'  # Atur versi Chrome, atau gunakan 'latest'
+
+      - name: Add ChromeDriver to PATH
+        run: |
+          echo "$(pwd)\chromedriver.exe" >> $GITHUB_PATH  # Menambahkan ChromeDriver ke PATH agar dapat digunakan
 
       - name: Run Selenium Script
         env:
